@@ -74,7 +74,7 @@ async def on_message(message):
 
 
 
-MonsterList = on_message('!LOAD')
+
 client.run("Mzk4MjAwOTMzMTYwMzIxMDI0.DS7GSQ.wXB8Xa522JtLjQ1nF9d8v5a4fIU")
 
 
