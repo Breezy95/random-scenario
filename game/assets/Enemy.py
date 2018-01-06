@@ -27,10 +27,7 @@ class Enemy:
                         return False
                 return True
 
-        def CalulateDamage(self):
-                damagemin = self.Att * 1
-                damagemax = self.Att * 10
-                return random.randint(damagemin,damagemax)
-
-        
-
+        def CalculateDamage(self):
+                #damagemin = self.Att * 1
+                #damagemax = self.Att * 10
+                return random.randint(1,10)
