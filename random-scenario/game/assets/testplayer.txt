@@ -1,0 +1,4 @@
+Player, The Chosen One, 100, 100, 100, ' ', False
+Player, Saigon, 100, 100, 100, ' ', False
+Player, Charlemagne The Great, 100, 100, 100, ' ', False
+Fiya, doodlebop, 44444444, 21, 2, ' ', False
