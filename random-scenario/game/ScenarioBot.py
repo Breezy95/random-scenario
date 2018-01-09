@@ -20,18 +20,22 @@ Item = []
 global loadedP
 loadedP = None
 #-----------------------------------
-def loadP():
+async def loadP():
           global Player
           global loadedP
           Player = []
           with open("assets/testplayer.txt","r") as f:
                         for line in f:
-                                line = line.split(', ')
-                                if((line[0])!= 'Player'):
+                                sline = line.split(', ')
+                                
+                                if((sline[0])!= 'Player'):
                                         continue #allows skip of line that doesnt start with player
                                 else:
-                                        Player.append(line[1:]) #[1:] lets you go past first item
-                                        loadedP = True
+                                    Player = [Player.Player(line[1], line[2], line[3]) for i in range(int(line))]
+                                    await bot.say(Player)
+
+                                        #Player.append(line[1:]) #[1:] lets you go past first item
+                        loadedP = True
                         return Player
 async def assign(ctx):
    global loadedP
@@ -96,13 +100,14 @@ async def aboutme(ctx):
 #loads player from text file
 @bot.command(pass_context = True)
 async def loadp(ctx):
-        try:
-                loadP()
-                loadedP = True
-                await bot.say('Heros loaded')
+        #try:
+        await loadP()
+        if(loadedP == True):
+            await bot.say('Heros loaded')
+            await bot.say(Player)
               
-        except:
-                await bot.say('Perhaps loadP() didnt work sir')
+        #except:
+         #       await bot.say('Perhaps loadP() didnt work sir')
 
 #assigns player/char/hero to  discord id
 @bot.command(pass_context = True)
@@ -112,34 +117,6 @@ async def assignP(ctx):
         except:
                await bot.say('perhaps something in assign(ctx) sir?') 
      
-
-'''@bot.command(pass_context=True)
-async def assignP(arg):
-         global x
-         hasID = False
-         if(loadedP == True):   
-                await bot.say(arg + ' players need to be loaded')
-                for  p in arg:
-                              await bot.say('type yes if you want to be this character')
-         else:
-                        return await bot.say("something happened")'''
-
-'''@bot.event
-async def on_message(message):
-    if message.content.startswith('start'):
-        await bot.send_message(message.channel, 'Type $stop 4 times. ' + 'id: ' + message.author.id)
-        for i in range(4):
-            msg = await bot.wait_for_message(author=message.author, content='stop')
-            fmt = '{} left to go...'
-            await bot.send_message(message.channel, fmt.format(3 - i))
-
-        await bot.send_message(message.channel, 'Good job!')'''
-
-
-                
-
-
-
 
 
 #loads the Token
