@@ -1,6 +1,7 @@
 import discord
 import asyncio
 import random
+import time
 from discord.ext import commands
 from assets import Enemy
 
@@ -21,14 +22,12 @@ isPlaying = False
 #Timer declares the amount of time each player will have during their turn. Can be Adjusted in the text file Via Timer <amount of time> on a line
 global Timer
 Timer = 60
-#Stores the damage the player will do the enemy
-global P2EDamage
 #Minimum amount of players needed to start the scenario. Can be Adjuseted in the text file Via MinPlayers <Amount of players> on a line
 global MinPlayers
 MinPlayers = 1
 #-----------------------------------
 
-                
+                       
 def Clear(): 
        global EnemyList
        global Player
@@ -41,15 +40,23 @@ def Clear():
 def load_Enemy():
         global ScenarioName
         with open(ScenarioName) as file:
-                for line in file:
+                for line in file:                       
                         global EnemyList
+                        global Timer
+                        global MinPlayers
                         arg = line.split(' ')
+                        if 'Timer' in arg:
+                               Timer = arg[1]
+                        if 'MinPlayers' in arg:
+                               MinPlayers = arg[1]
                         if 'Enemy' in arg:
                              global EnemyList
                              enemy1 = Enemy.Enemy(arg[1], arg[2], arg[3], arg[4])
                              EnemyList.append(enemy1)
                         if '****' in arg:
                                 return EnemyList
+                                return Timer
+                                return MinPlayers   
                         arg.clear()
 
 #Creates the bot
@@ -62,6 +69,14 @@ async def on_ready():
         print('Logged in as ')
         print(bot.user.name)
 
+
+
+@bot.command(pass_context = True)
+async def test(ctx):
+       name = await bot.wait_for_message()
+       await bot.say(name.content)
+
+       
 @bot.command(pass_context = True)
 async def say(ctx ,*, say: str):
         await bot.say(say)
@@ -76,12 +91,12 @@ async def aboutme(ctx):
 async def mInfo(ctx, arg: int):
         global EnemyList
         try:
-                EnemyList[arg].Hp = 20
+                await bot.delete_message(ctx.message)
                 await bot.say("EnemyName: " + (EnemyList[arg].name))
                 await bot.say("HP: " + str(EnemyList[arg].Hp))
                 await bot.say("Def: " + str(EnemyList[arg].Def))
                 await bot.say("Att: " + str(EnemyList[arg].Att))
-                await bot.say(str(EnemyList[arg].CalculateDamage()))
+                await bot.say("Enemy Can Do: " + str(EnemyList[arg].CalculateDamage())+ " damage")
         except:
                 await bot.say("There is no Enemy at that index")
 
@@ -99,33 +114,68 @@ async def loadEnemy(ctx):
 @bot.command(pass_context = True)
 async def ts(ctx, filename):
         try:
+                global isPlaying
+                if isPlaying == True:
+                       await bot.send_message(ctx.message.author,"Game is currently in session cant switch")
+                       await bot.delete_message(ctx.message)
+                       return
                 global ScenarioName
                 f = open(filename,"r")
                 if ScenarioName != "":
-                        await bot.say(ScenarioName + "  is gonna be switched out for " + filename)
-                        ScenarioName = filename
-                        return ScenarioName
+                        name  = ScenarioName.split(".")    
+                        name2 = filename.split(".")
+                        await bot.say(name[0] + "  has been switched out for " + name2[0])
+                        ScenarioName = filename    
+                        try:
+                               Clear()
+                               load_Enemy()
+                        except:
+                               await bot.say(ctx.author.mention + " Scenario was found but failed to load. Check the scenario file to make sure everything is up to standard.")
+                        await bot.delete_message(ctx.message)
+                        await bot.say(name2[0] + " scenario has been loaded and ready to play")
+                        return ScenarioName    
                 ScenarioName = filename
-                await bot.say(filename + " has been targeted and ready to load")
+                name2 = filename.split(".")
+                try:
+                               Clear()
+                               load_Enemy()
+                except:
+                               await bot.say(ctx.author.mention + " Scenario was found but failed to load. Check the scenario file to make sure everything is up to standard.")
+                await bot.say(name2[0] + " scenario has been loaded and ready to play")
+                await bot.delete_message(ctx.message)
                 return ScenarioName
         except:
-                await bot.say(ctx.message.author.mention +" "+ filename + " was not found/ targeted make sure its in the same file path as bot ")
+                await bot.say(ctx.message.author.mention +" "+ filename + " was not found targeted make sure its in the same file path as bot ")
 
 @bot.command(pass_context = True)
-async def attack(ctx):
-       global isPlaying
-       if isPlaying == False:
-             await bot.say("There is no game currently running")
+async def gameSettings(ctx):
+       global MinPlayers
+       global Timer
+       global ScenarioName
+       Name = ScenarioName.split(".")
+       if ScenarioName == "":
+              await bot.say("There is no Scenario Selected or Loaded. Select a Scenario with the !ts <ScenarioName> command and load it with !loadEnemy command")
+              return
+       await bot.say("Scenario Name: " + Name[0])
+       await bot.say("Timer: " + str(Timer) +" seconds")
+       await bot.say("Minimum Required Players: " + str(MinPlayers))
+       await bot.delete_message(ctx.message)
+
 
 
 
 @bot.command(pass_context = True)
-async def defend(ctx):
+async def Play(ctx): 
        global isPlaying
-       if isPlaying == False:
-             await bot.say("There is no game currently running")
-              
-
+       global MinPlayers
+       if ScenarioName == "":
+              await bot.say("There is no Scenario Selected or Loaded. Select a Scenario with the !ts <ScenarioName> command")
+              return
+       if len(Player) < MinPlayers:
+              await bot.say("Not Enough Players")
+              return
+       isPlaying == True
+       
                 
                 
 #loads the Token

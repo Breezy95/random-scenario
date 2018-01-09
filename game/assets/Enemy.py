@@ -3,7 +3,7 @@ import random
 from discord.ext import commands
 
 class Enemy:
-        def __init__(self,name,Hp,Def,Att):
+        def __init__(self,name, Hp : int, Def : int, Att : int):
                 self.name = name
                 self.Hp = Hp
                 self.Def = Def
