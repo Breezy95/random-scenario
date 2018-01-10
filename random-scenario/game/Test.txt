@@ -1,0 +1,4 @@
+Enemy, EvilMan, 100, 10, 100
+Player, BossMan, 100, 100, 100
+Timer, 10
+MinPlayers, 2

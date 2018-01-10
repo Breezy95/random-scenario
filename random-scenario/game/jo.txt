@@ -1,0 +1,4 @@
+Enemy, Bandit, 100, 100, 100
+Enemy, Nemo, 10, 10, 10
+Timer, 100
+MinPlayers, 5
