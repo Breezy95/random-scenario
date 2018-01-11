@@ -26,8 +26,6 @@ class Enemy:
                 if self.Hp < 0:
                         return False
                 return True
-
-        def CalculateDamage(self):
-                #damagemin = self.Att * 1
-                #damagemax = self.Att * 10
-                return random.randint(1,10)
+        def CalculateDamage(x,y):
+                return random.randint(x,y)
+               
