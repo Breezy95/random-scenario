@@ -3,17 +3,36 @@ import asyncio
 import random
 import time
 from discord.ext import commands
+from assets import DPlayer
 from assets import Enemy
-from assets import Player
 
 
+
+description = "HELLO im Scenario Bot made by Ethan and Fabrice." \
+              "The Commands are listed below."\
+              "\n HOW TO CREATE A SCENARIO------------------------"\
+              "\n Create a new text file the name of the Textfile will be the name of your scenario"\
+              " The begining of the text file should start by defining the options, players, enemeies found in the scenario."\
+              "\n DECLARING ENEMIES AND PLAYERS-----------------------"\
+              "\n Begin a Line With Enemy to declare an Enemy. Use a comma to seperate each attribute. "\
+              "Enemy, <name>, <Hp>, <Def>, <Att>. Ex. Enemy, Bob Ross, 100, 100, 100 "\
+              "\n Declare Players the same with begin a line with Player"\
+              "\n Player, <name>, <Hp>, <Def>, <Att>. Ex. Player, Joeseph, 100, 100, 100,"\
+              "\n CUSTOMIZING OPTIONS--------------------"\
+              "\n You can customize the amount a time a turn takes, the min and max amount of players needed to play."\
+              "\n Begin a line with Timer followed by a comma and the amount of time in seconds"\
+              "\n Timer, <amount of time>. ex Timer, 60"\
+              "\n Begin a line with MinPlayers or MaxPlayers followed by a comma and the amount of players"\
+              "\n MinPlayers, <amount of players>. MinPlayers, 6"
+
+prefix = ['!','?','/','@']
 
 #Global Game Variables
 #---------------------------------
 global EnemyList
 EnemyList = []
 global PlayerList
-Player = []
+PlayerList = []
 #The name of the txt file that you want to be loaded
 global ScenarioName
 ScenarioName = ""
@@ -28,8 +47,48 @@ global MinPlayers
 MinPlayers = 1
 
 #-----------------------------------
-newplayer = Player("Jobo",100,100,100," ",False)
-                       
+
+def EmptyPlayers():
+    global PlayerList:
+        count = 0
+        for player in PlayerList:
+            if PlayerList[count].ID == '':
+                PlayerList.pop(count)
+                count+=1
+                continue
+            count+=1
+        return PlayerList:
+
+
+
+
+def getname():
+    blank = ""
+    count = 0
+    for Enemy in EList:
+        if count > 0:
+            and_index = len(EList) - 2
+            if count == and_index:
+                blank += ", "
+                blank += EList[count].name
+                blank += " and "
+                count+=1
+                continue
+            last_index = len(EList) - 1 
+            if count == last_index:
+                blank += EList[count].name
+                return blank
+            blank += ", "
+            blank += EList[count].name
+            count+=1
+            continue
+        blank = EList[count].name
+        count+=1
+    return blank   
+       
+       
+
+       
 def Clear(): 
        global EnemyList
        global PlayerList
@@ -47,9 +106,9 @@ def load():
                         global EnemyList
                         global Timer
                         global MinPlayers
-                        arg = line.split(',')
+                        arg = line.split(",")
                         if 'Player' in arg:
-                               newplayer = Player.Player(arg[1],arg[2],arg[3],arg[4]," ",False)
+                               newplayer = DPlayer.DPlayer(arg[1],arg[2],arg[3],arg[4]," ",False)
                                PlayerList.append(newplayer)
                                arg.clear()
                                continue
@@ -70,12 +129,12 @@ def load():
                         if '****' in arg:
                                 return EnemyList
                                 return Timer
-                                return Player
+                                return PlayerList
                                 return MinPlayers
                         arg.clear()
 
 #Creates the bot
-bot = commands.Bot(command_prefix='!', description ='Bot Description WIP', pm_help= True)
+bot = commands.Bot(command_prefix= prefix, description = description, pm_help= True)
 
 
 #Event Plays when Bot is Online and Connected to Server
@@ -98,42 +157,37 @@ async def say(ctx ,*, say: str):
         await bot.say(say)
         
 
-@bot.command(pass_context = True)
-async def aboutme(ctx):
-        await bot.say(ctx.message.author)
-        await bot.delete_message(ctx.message)
+
 
 @bot.command(pass_context = True)
 async def mInfo(ctx, arg: int):
         global EnemyList
-        try:
-                await bot.delete_message(ctx.message)
-                await bot.say("EnemyName: " + (EnemyList[arg].name))
-                await bot.say("HP: " + str(EnemyList[arg].Hp))
-                await bot.say("Def: " + str(EnemyList[arg].Def))
-                await bot.say("Att: " + str(EnemyList[arg].Att))
-                await bot.say("Enemy Can Do: " + str(EnemyList[arg].CalculateDamage())+ " damage")
-        except:
-                await bot.say("There is no Enemy at that index")
+        await bot.delete_message(ctx.message)
+        x = EnemyDamagemin(arg)
+        y = EnemyDamagemax(arg)
+        Enemy1 = EnemyList[arg]
+        await bot.say("EnemyName: " + (EnemyList[arg].name))
+        await bot.say("HP: " + str(EnemyList[arg].Hp))
+        await bot.say("Def: " + str(EnemyList[arg].Def))
+        await bot.say("Att: " + str(EnemyList[arg].Att))
+        await bot.say("Enemy Can Do: " + str(Enemy1.CalculateDamage(x,y)) + " damage")
+       
 
 #Create Functions and Commands Below vvv
 
 @bot.command(pass_context = True)
 async def playerlist(ctx):
-       global Player
+       global PlayerList
+       await bot.delete_message(ctx.message)
        for players in PlayerList:
               await bot.say(players.name)
+              await bot.say("hasID: " + str(players.hasID))
+              await bot.say("HP: " + str(players.Hp))
+              await bot.say("Def: " + str(players.Def))
+              await bot.say("Att: " + str(players.Att))
+              
        
 
-
-@bot.command(pass_context = True)
-async def loadEnemy(ctx):
-        try:
-                Clear()
-                load_Enemy()
-                await bot.say(" Enemies have been loaded")
-        except:
-                await bot.say("load Failed")
 
 @bot.command(pass_context = True)
 async def ts(ctx, filename):
@@ -150,23 +204,19 @@ async def ts(ctx, filename):
                         name2 = filename.split(".")
                         await bot.say(name[0] + "  has been switched out for " + name2[0])
                         ScenarioName = filename    
-                        try:
-                               Clear()
-                               load()
-                        except:
-                               await bot.say(ctx.author.mention + " Scenario was found but failed to load. Check the scenario file to make sure everything is up to standard.")
+                        Clear()
+                        load()
                         await bot.delete_message(ctx.message)
                         await bot.say(name2[0] + " scenario has been loaded and ready to play")
                         return ScenarioName    
                 ScenarioName = filename
                 name2 = filename.split(".")
-                try:
-                               Clear()
-                               load()
-                except:
-                               await bot.say(ctx.author.mention + " Scenario was found but failed to load. Check the scenario file to make sure everything is up to standard.")
+                Clear()
+                load()
                 await bot.say(name2[0] + " scenario has been loaded and ready to play")
                 await bot.delete_message(ctx.message)
+                if len(PlayerList) < 1:
+                       await bot.say("There are no pre-defined players. Create players for the scenario with the !create <Playername> command. Enjoy the game!")
                 return ScenarioName
         except:
                 await bot.say(ctx.message.author.mention +" "+ filename + " was not found targeted make sure its in the same file path as bot ")
@@ -189,23 +239,47 @@ async def gameSettings(ctx):
 
 @bot.command(pass_context = True)
 async def join(ctx):
-       global Player
+       global PlayerList
+       count = 0
+       for player in PlayerList:
+              if ctx.message.author.id == PlayerList[count].ID:
+                     await bot.say("Your already a player Bitch!")
+                     await bot.delete_message(ctx.message)
+                     return
+              count+=1
        playernumber = ctx.message.content.split(" ")
        if len(playernumber) > 1:
-              newplayernumber = int(playnumber[1])
+              newplayernumber = int(playernumber[1])
               index = newplayernumber - 1
-              PlayerList[index].ID = ctx.message.author.ID
-              PlayerList[Index].hasID = True
-              await bot.say(ctx.author.mention + " You Joined in as Player " + str(newplayernumber))
+              if PlayerList[index].hasID == True:
+                     await bot.say(ctx.message.author.mention + " Somebody has chosen that player already. Choose an available player.")
+                     return
+              PlayerList[index].ID = ctx.message.author.id
+              PlayerList[index].hasID = True
+              await bot.say(ctx.message.author.mention + " You Joined in as Player " + PlayerList[index].name)
+              await bot.delete_message(ctx.message)
               return PlayerList
-       for Players in PlayerList:  
-              if Players.hasID == False:
-                     Players.ID == ctx.message.author.id
-                     Players.hasID == True
-                     await bot.say(ctx.author.mention + " You Joined in as Player" + Players.name)
+       count = 0       
+       for player in PlayerList:  
+              if PlayerList[count].hasID == True:
+                     count +=1
+                     continue
+              if PlayerList[count].hasID == False:
+                     PlayerList[count].ID = ctx.message.author.id
+                     PlayerList[count].hasID = True
+                     await bot.say(ctx.message.author.mention + " You Joined in as Player " + player.name)
+                     await bot.delete_message(ctx.message)
                      return PlayerList
+       await bot.delete_message(ctx.message)       
+       await bot.say(ctx.message.author.mention + " There are no more available players.")
+
+@bot.command(pass_context = True)
+async def create(ctx,*,name: str):
+       global PlayerList
+       newplayer1 = DPlayer.DPlayer(name,100,random.randint(75,150),random.randint(75,150),"",False)
+       PlayerList.append(newplayer1)
+       return PlayerList
        
-              
               
 @bot.command(pass_context = True)
 async def Play(ctx): 
@@ -220,7 +294,20 @@ async def Play(ctx):
               return
        isPlaying == True
        
-                
+@bot.command(pass_context = True)
+async def unjoin(ctx):
+       global PlayerList
+       count = 0
+       for player in PlayerList:
+              if ctx.message.author.id == PlayerList[count].ID:
+                     PlayerList[count].ID = ''
+                     PlayerList[count].hasID = False
+                     await bot.say(ctx.message.author.mention + " You are no longer " + PlayerList[count].name )
+                     await bot.delete_message(ctx.message)
+                     return
+              count+=1
+       await bot.say(ctx.message.author.mention + " You are not in the game")
+       
                 
 #loads the Token
 f = open("assets/token.txt","r")
