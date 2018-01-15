@@ -1,3 +1,7 @@
+<Start>
+Hello this is the First Test of the Main Game!!
+if the bot is saying this that measns it worked
+<End>
 Enemy, EvilMan, 100, 10, 100
 Timer, 10
-MinPlayers, 2
+MinPlayers, 1

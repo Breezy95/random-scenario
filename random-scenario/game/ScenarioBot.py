@@ -33,6 +33,8 @@ global EnemyList
 EnemyList = []
 global PlayerList
 PlayerList = []
+global TurnOrder
+TurnOrder = []
 #The name of the txt file that you want to be loaded
 global ScenarioName
 ScenarioName = ""
@@ -49,42 +51,48 @@ MinPlayers = 1
 #-----------------------------------
 
 def EmptyPlayers():
-    global PlayerList:
-        count = 0
-        for player in PlayerList:
+    global PlayerList
+    count = 0
+    for player in PlayerList:
             if PlayerList[count].ID == '':
                 PlayerList.pop(count)
                 count+=1
                 continue
             count+=1
-        return PlayerList:
-
-
+    return PlayerList
 
 
 def getname():
+    global PlayerList
     blank = ""
     count = 0
-    for Enemy in EList:
+    for Player in PlayerList:
         if count > 0:
-            and_index = len(EList) - 2
+            if len(PlayerList) == 2:
+                blank = PlayerList[0].name
+                blank += " and "
+                blank += PlayerList[1].name
+                return blank
+            and_index = len(PlayerList) - 2
             if count == and_index:
                 blank += ", "
-                blank += EList[count].name
+                blank += PlayerList[count].name
                 blank += " and "
                 count+=1
                 continue
-            last_index = len(EList) - 1 
+            last_index = len(PlayerList) - 1 
             if count == last_index:
-                blank += EList[count].name
+                blank += PlayerList[count].name
                 return blank
             blank += ", "
-            blank += EList[count].name
+            blank += PlayerList[count].name
             count+=1
             continue
-        blank = EList[count].name
+        blank = PlayerList[count].name
         count+=1
-    return blank   
+    return blank
+
+
        
        
 
@@ -144,7 +152,6 @@ async def on_ready():
         print(bot.user.name)
 
 
-
 @bot.command(pass_context = True)
 async def test(ctx):
        arg = ctx.message.content
@@ -163,14 +170,12 @@ async def say(ctx ,*, say: str):
 async def mInfo(ctx, arg: int):
         global EnemyList
         await bot.delete_message(ctx.message)
-        x = EnemyDamagemin(arg)
-        y = EnemyDamagemax(arg)
         Enemy1 = EnemyList[arg]
         await bot.say("EnemyName: " + (EnemyList[arg].name))
         await bot.say("HP: " + str(EnemyList[arg].Hp))
         await bot.say("Def: " + str(EnemyList[arg].Def))
         await bot.say("Att: " + str(EnemyList[arg].Att))
-        await bot.say("Enemy Can Do: " + str(Enemy1.CalculateDamage(x,y)) + " damage")
+        await bot.say("Enemy Can Do: " + str(Enemy1.CalculateDamage()) + " damage")
        
 
 #Create Functions and Commands Below vvv
@@ -242,7 +247,7 @@ async def join(ctx):
        global PlayerList
        count = 0
        for player in PlayerList:
-              if ctx.message.author.id == PlayerList[count].ID:
+              if ctx.message.author == PlayerList[count].ID:
                      await bot.say("Your already a player Bitch!")
                      await bot.delete_message(ctx.message)
                      return
@@ -254,7 +259,7 @@ async def join(ctx):
               if PlayerList[index].hasID == True:
                      await bot.say(ctx.message.author.mention + " Somebody has chosen that player already. Choose an available player.")
                      return
-              PlayerList[index].ID = ctx.message.author.id
+              PlayerList[index].ID = ctx.message.author
               PlayerList[index].hasID = True
               await bot.say(ctx.message.author.mention + " You Joined in as Player " + PlayerList[index].name)
               await bot.delete_message(ctx.message)
@@ -285,14 +290,17 @@ async def create(ctx,*,name: str):
 async def Play(ctx): 
        global isPlaying
        global MinPlayers
-       playercount = int(len(Player))
+       global ScenarioName
+       playercount = int(len(PlayerList))
        if ScenarioName == "":
               await bot.say("There is no Scenario Selected or Loaded. Select a Scenario with the !ts <ScenarioName> command")
               return 
-       if playercount < 10:
+       if playercount < 0:
               await bot.say("Not Enough Players")
               return
        isPlaying == True
+                
+               
        
 @bot.command(pass_context = True)
 async def unjoin(ctx):
@@ -307,9 +315,46 @@ async def unjoin(ctx):
                      return
               count+=1
        await bot.say(ctx.message.author.mention + " You are not in the game")
-       
-                
+
+
+keywords = ['<Players>','<Battle>']
+@bot.command(pass_context = True)
+async def start(ctx):
+       x = '<Start>'
+       z = '<End>'
+       f = open("assets/Test.txt", "r")
+       story = f.readlines()
+       global PlayerList
+       global EnemyList
+       global TurnOrder
+       for n,para in enumerate(story, 0):
+              if x in para:
+                     place = n+1
+              if z in para:
+                     place_end = n
+                     for y in range(place,place_end):
+                         keywordUsed = False
+                         if keywords[0] in story[y]:
+                                   names = getname()
+                                   story[y] = story[y].replace('<Players>', names)
+                                   await bot.say(story[y])
+                                   keywordUsed = True
+                         if keywords[1] in story[y]:
+                            story[y] = story[y].replace(keywords[1],"")
+                            await bot.say(story[y])
+                            keywordUsed = True
+                            for player in PlayerList:
+                                TurnOrder.append(player)
+                            for Enemy in EnemyList:
+                                TurnOrder.append(Enemy)
+                            random.shuffle(TurnOrder)
+                            #for turn in TurnOrder:
+                         if keywordUsed == False:
+                             await bot.say(story[y])
+                             
+             
+                                       
 #loads the Token
-f = open("assets/token.txt","r")
+f = open("assets/token.txt" ,"r")
 token = f.readline()
 bot.run(token)

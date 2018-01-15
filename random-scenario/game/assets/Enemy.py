@@ -26,6 +26,6 @@ class Enemy:
                 if self.Hp < 0:
                         return False
                 return True
-        def CalculateDamage(x,y):
-                return random.randint(x,y)
+        def CalculateDamage(self):
+                return random.randint(0,100)
                

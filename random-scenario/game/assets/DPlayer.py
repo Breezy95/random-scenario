@@ -10,7 +10,7 @@ class DPlayer:
                 self.Hp = Hp
                 self.Def = Def
                 self.Att = Att
-                self.ID = ''
+                self.ID = ID
                 self.hasID = False
 
 
