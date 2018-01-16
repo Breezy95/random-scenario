@@ -29,10 +29,13 @@ prefix = ['!','?','/','@']
 
 #Global Game Variables
 #---------------------------------
+#List of Enemies
 global EnemyList
 EnemyList = []
+#List of Players
 global PlayerList
 PlayerList = []
+#Determines the TurnOrder...Is filled in once the game is started
 global TurnOrder
 TurnOrder = []
 #The name of the txt file that you want to be loaded
@@ -47,14 +50,13 @@ Timer = 60
 #Minimum amount of players needed to start the scenario. Can be Adjuseted in the text file Via MinPlayers <Amount of players> on a line
 global MinPlayers
 MinPlayers = 1
-
 #-----------------------------------
 
 def EmptyPlayers():
     global PlayerList
     count = 0
     for player in PlayerList:
-            if PlayerList[count].ID == '':
+            if PlayerList[count].ID == 0:
                 PlayerList.pop(count)
                 count+=1
                 continue
@@ -92,8 +94,6 @@ def getname():
         count+=1
     return blank
 
-
-       
        
 
        
@@ -116,7 +116,7 @@ def load():
                         global MinPlayers
                         arg = line.split(",")
                         if 'Player' in arg:
-                               newplayer = DPlayer.DPlayer(arg[1],arg[2],arg[3],arg[4]," ",False)
+                               newplayer = DPlayer.DPlayer(arg[1],arg[2],arg[3],arg[4],0,False)
                                PlayerList.append(newplayer)
                                arg.clear()
                                continue
@@ -270,7 +270,7 @@ async def join(ctx):
                      count +=1
                      continue
               if PlayerList[count].hasID == False:
-                     PlayerList[count].ID = ctx.message.author.id
+                     PlayerList[count].ID = ctx.message.author
                      PlayerList[count].hasID = True
                      await bot.say(ctx.message.author.mention + " You Joined in as Player " + player.name)
                      await bot.delete_message(ctx.message)
@@ -281,7 +281,7 @@ async def join(ctx):
 @bot.command(pass_context = True)
 async def create(ctx,*,name: str):
        global PlayerList
-       newplayer1 = DPlayer.DPlayer(name,100,random.randint(75,150),random.randint(75,150),"",False)
+       newplayer1 = DPlayer.DPlayer(name,100,random.randint(75,150),random.randint(75,150),0,False)
        PlayerList.append(newplayer1)
        return PlayerList
        
@@ -307,7 +307,7 @@ async def unjoin(ctx):
        global PlayerList
        count = 0
        for player in PlayerList:
-              if ctx.message.author.id == PlayerList[count].ID:
+              if ctx.message.author == PlayerList[count].ID:
                      PlayerList[count].ID = ''
                      PlayerList[count].hasID = False
                      await bot.say(ctx.message.author.mention + " You are no longer " + PlayerList[count].name )
@@ -327,6 +327,7 @@ async def start(ctx):
        global PlayerList
        global EnemyList
        global TurnOrder
+       global Timer
        for n,para in enumerate(story, 0):
               if x in para:
                      place = n+1
@@ -334,11 +335,13 @@ async def start(ctx):
                      place_end = n
                      for y in range(place,place_end):
                          keywordUsed = False
+                         #Reads a Line with The <Players> Keyword
                          if keywords[0] in story[y]:
                                    names = getname()
                                    story[y] = story[y].replace('<Players>', names)
                                    await bot.say(story[y])
                                    keywordUsed = True
+                         #Reads a Line with <Battle> keyword          
                          if keywords[1] in story[y]:
                             story[y] = story[y].replace(keywords[1],"")
                             await bot.say(story[y])
@@ -348,7 +351,43 @@ async def start(ctx):
                             for Enemy in EnemyList:
                                 TurnOrder.append(Enemy)
                             random.shuffle(TurnOrder)
-                            #for turn in TurnOrder:
+                            count = 0
+                            battleOn = True
+                       #Start Combat code begins here     
+                            while battleOn == True:
+                                #AI for the enemy on his Turn
+                                if TurnOrder[count].Whoami() == "Enemy":
+                                    #if TurnOrder[count].isAlive() == False:
+                                        #count+=1
+                                        #continue
+                                    lastindex = len(PlayerList) - 1
+                                    if lastindex == -1:
+                                        damage = float(TurnOrder[count].CalculateDamage()) - (PlayerList[0].Def * 0.1)
+                                        await bot.say(TurnOrder[count].name + " did " + str(damage) +" damage to " + PlayerList[0].name + " with a massive blow!!! ")
+                                        count+=1
+                                        continue
+                                    Targetindex = random.randint(0,lastindex)
+                                    damage = float(TurnOrder[count].CalculateDamage()) - (PlayerList[Targetindex].Def * 0.1)
+                                    await bot.say(TurnOrder[count].name + " did " + str(damage) +" damage to " + PlayerList[Targetindex].name + " with a massive blow!!! ")
+                                    count+=1
+                                    continue
+                               #Player Controls Begin here
+                                if TurnOrder[count].Whoami() == "DPlayer":
+                                    #if TurnOrder[count].isAlive() == False:
+                                        #count+=1
+                                        #continue
+                                    await bot.say(TurnOrder[count].ID.mention + " Its " + TurnOrder[count].name + " turn!!!")
+                                    msg = await bot.wait_for_message(timeout = Timer, author = TurnOrder[count].ID)
+                                    if msg.content == "attack":
+                                         Targetindex = random.randint(0,len(EnemyList))
+                                         damage = float(TurnOrder[count].CalculateDamage()) - (EnemyList[Targetindex].Def * 0.1)
+                                         await bot.say(TurnOrder[count].name + " did " + str(damage) +" damage to " + PlayerList[Targetindex].name + " with a massive blow!!! ")
+                                         count+=1
+                                         continue
+                                    if msg.content == "end":
+                                         return 
+                                    continue
+                         #Prints Line with no Keywords in it
                          if keywordUsed == False:
                              await bot.say(story[y])
                              

@@ -7,5 +7,5 @@ A raging battle insued..<Battle>
 <End>
 Enemy, EvilMan, 100, 10, 100
 Enemy, Bandit, 150, 20, 100
-Timer, 10
+Timer, 80
 MinPlayers, 1

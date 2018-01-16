@@ -28,4 +28,6 @@ class Enemy:
                 return True
         def CalculateDamage(self):
                 return random.randint(0,100)
+        def Whoami(self):
+                return "Enemy"
                
