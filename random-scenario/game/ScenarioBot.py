@@ -116,7 +116,7 @@ def load():
                         global MinPlayers
                         arg = line.split(",")
                         if 'Player' in arg:
-                               newplayer = DPlayer.DPlayer(arg[1],arg[2],arg[3],arg[4],0,False)
+                               newplayer = DPlayer.DPlayer(arg[1],int(arg[2]),int(arg[3]),int(arg[4]),0,False)
                                PlayerList.append(newplayer)
                                arg.clear()
                                continue
@@ -130,7 +130,7 @@ def load():
                                continue
                         if 'Enemy' in arg:
                              global EnemyList
-                             enemy1 = Enemy.Enemy(arg[1], arg[2], arg[3], arg[4])
+                             enemy1 = Enemy.Enemy(arg[1], int(arg[2]), int(arg[3]), int(arg[4]))
                              EnemyList.append(enemy1)
                              arg.clear()
                              continue
@@ -173,7 +173,7 @@ async def mInfo(ctx, arg: int):
         Enemy1 = EnemyList[arg]
         await bot.say("EnemyName: " + (EnemyList[arg].name))
         await bot.say("HP: " + str(EnemyList[arg].Hp))
-        await bot.say("Def: " + str(EnemyList[arg].Def))
+        await bot.say("Def: " + EnemyList[arg].Def)
         await bot.say("Att: " + str(EnemyList[arg].Att))
         await bot.say("Enemy Can Do: " + str(Enemy1.CalculateDamage()) + " damage")
        
@@ -243,7 +243,7 @@ async def gameSettings(ctx):
 
 
 @bot.command(pass_context = True)
-async def join(ctx):
+async def join(ctx, member : discord.Member, playernumber : int = -1):
        global PlayerList
        count = 0
        for player in PlayerList:
@@ -252,25 +252,23 @@ async def join(ctx):
                      await bot.delete_message(ctx.message)
                      return
               count+=1
-       playernumber = ctx.message.content.split(" ")
-       if len(playernumber) > 1:
-              newplayernumber = int(playernumber[1])
-              index = newplayernumber - 1
-              if PlayerList[index].hasID == True:
+       if playernumber > 0:
+            index = playernumber - 1
+            if PlayerList[index].hasID == True:
                      await bot.say(ctx.message.author.mention + " Somebody has chosen that player already. Choose an available player.")
                      return
-              PlayerList[index].ID = ctx.message.author
-              PlayerList[index].hasID = True
-              await bot.say(ctx.message.author.mention + " You Joined in as Player " + PlayerList[index].name)
-              await bot.delete_message(ctx.message)
-              return PlayerList
+            PlayerList[index].ID = member
+            PlayerList[index].hasID = True
+            await bot.say(ctx.message.author.mention + " You Joined in as Player " + PlayerList[index].name)
+            await bot.delete_message(ctx.message)
+            return PlayerList
        count = 0       
        for player in PlayerList:  
               if PlayerList[count].hasID == True:
                      count +=1
                      continue
               if PlayerList[count].hasID == False:
-                     PlayerList[count].ID = ctx.message.author
+                     PlayerList[count].ID = member
                      PlayerList[count].hasID = True
                      await bot.say(ctx.message.author.mention + " You Joined in as Player " + player.name)
                      await bot.delete_message(ctx.message)
@@ -355,38 +353,60 @@ async def start(ctx):
                             battleOn = True
                        #Start Combat code begins here     
                             while battleOn == True:
+                                ResetIndex = len(TurnOrder)-1
                                 #AI for the enemy on his Turn
                                 if TurnOrder[count].Whoami() == "Enemy":
-                                    #if TurnOrder[count].isAlive() == False:
-                                        #count+=1
-                                        #continue
+                                    if TurnOrder[count].isAlive() == False:
+                                        await bot.say(TurnOrder[count].name + " is Dead")    
+                                        if count == ResetIndex:
+                                            count = 0
+                                            continue
+                                        count+=1
+                                        continue
                                     lastindex = len(PlayerList) - 1
                                     if lastindex == -1:
                                         damage = float(TurnOrder[count].CalculateDamage()) - (PlayerList[0].Def * 0.1)
                                         await bot.say(TurnOrder[count].name + " did " + str(damage) +" damage to " + PlayerList[0].name + " with a massive blow!!! ")
+                                        if count == ResetIndex:
+                                            count = 0
+                                            continue
                                         count+=1
                                         continue
                                     Targetindex = random.randint(0,lastindex)
                                     damage = float(TurnOrder[count].CalculateDamage()) - (PlayerList[Targetindex].Def * 0.1)
+                                    PlayerList[Targetindex].Hp = int(PlayerList[Targetindex].Hp - damage)    
                                     await bot.say(TurnOrder[count].name + " did " + str(damage) +" damage to " + PlayerList[Targetindex].name + " with a massive blow!!! ")
+                                    if count == ResetIndex:
+                                        count = 0
+                                        continue
                                     count+=1
                                     continue
                                #Player Controls Begin here
                                 if TurnOrder[count].Whoami() == "DPlayer":
-                                    #if TurnOrder[count].isAlive() == False:
-                                        #count+=1
-                                        #continue
+                                    if TurnOrder[count].isAlive() == False:
+                                        await bot.say(TurnOrder[count].name + " is Dead")   
+                                        if count == ResetIndex:
+                                            count = 0
+                                            continue
+                                        count+=1
+                                        continue
                                     await bot.say(TurnOrder[count].ID.mention + " Its " + TurnOrder[count].name + " turn!!!")
-                                    msg = await bot.wait_for_message(timeout = Timer, author = TurnOrder[count].ID)
+                                    msg = await bot.wait_for_message(timeout = 60, author = TurnOrder[count].ID)
                                     if msg.content == "attack":
-                                         Targetindex = random.randint(0,len(EnemyList))
+                                         Targetindex = random.randint(0,len(EnemyList)-1)
                                          damage = float(TurnOrder[count].CalculateDamage()) - (EnemyList[Targetindex].Def * 0.1)
-                                         await bot.say(TurnOrder[count].name + " did " + str(damage) +" damage to " + PlayerList[Targetindex].name + " with a massive blow!!! ")
-                                         count+=1
+                                         EnemyList[Targetindex].Hp = int(EnemyList[Targetindex].Hp - damage)
+                                         await bot.say(TurnOrder[count].name + " did " + str(damage) +" damage to " + EnemyList[Targetindex].name + " with a massive blow!!! ")
+                                         if count == ResetIndex:
+                                            count = 0
+                                            continue
+                                         count += 1
                                          continue
                                     if msg.content == "end":
+                                         await bot.say("you ended the game")   
                                          return 
                                     continue
+                                
                          #Prints Line with no Keywords in it
                          if keywordUsed == False:
                              await bot.say(story[y])
