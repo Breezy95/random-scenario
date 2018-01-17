@@ -3,7 +3,7 @@ import random
 from discord.ext import commands
 
 class Enemy:
-        def __init__(self,name, Hp : int, Def : int, Att : int):
+        def __init__(self,name, Hp : int, Def , Att : int):
                 self.name = name
                 self.Hp = Hp
                 self.Def = Def
@@ -26,6 +26,10 @@ class Enemy:
                 if self.Hp < 0:
                         return False
                 return True
-        def CalculateDamage(x,y):
+        def CalculateDamage(self):
+                x = self.Att * 0.1
+                y = self.Att * 1
                 return random.randint(x,y)
+        def Whoami(self):
+                return "Enemy"
                

@@ -1,0 +1,29 @@
+CanCreate, 1
+MinPlayers, 2
+Timer, 70
+Player, Heath Panac, 500, 120, 150
+Player, Alcine, 700, 250, 200
+Enemy, Bandit 1, 100, 50, 50
+Enemy, Bandit 2, 100, 50, 50
+Enemy, Bandit 3, 100, 50, 50
+Enemy, The Big Bad Boss, 1000, 200, 300
+****
+<Start>
+Heath Panac was walking down the street of New Beatz City.
+While walking to his job at Beatz Studio. A Giant Inter - Dimensional Portal opened up.
+Heath Panac was sucked inside. Alcine was mourning his dead girlfriend,
+when similarly he was sucked inside a portal as well.
+<Players> landed in this new world surrounded by bandits.
+Bandit 1: Look what we got here. A City Punk and A crying Bitch.
+Bandit 2: What ya say we beat them till they're dead meat.
+<Players> stand to their feet ready to battle.
+A Raging Battle is about to ensue.... <Battle> 3
+<Players> defeated the ugly Bandits, but heard a voice from the distance
+Big Bad Boss: Ohoohohoho so you killed my sex slaves.
+Big Bad Boss: Guess you guys will replace em. Come here Boyz
+Alcine: Disgusting........
+<Players> are about to have the fight of their lives.... <Battle> 
+<Players> managed to defeat the Big Bad Boss.
+They acknowlged each other and returned to their respective worlds....
+The End?
+<End>

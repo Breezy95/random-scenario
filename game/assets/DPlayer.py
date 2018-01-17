@@ -5,12 +5,12 @@ from discord.ext import commands
 
 
 class DPlayer:
-        def __init__(self,name,Hp,Def,Att,ID,hasID):
+        def __init__(self,name, Hp : int , Def : int, Att : int,ID ,hasID ):
                 self.name = name
                 self.Hp = Hp
                 self.Def = Def
                 self.Att = Att
-                self.ID = ''
+                self.ID = ID
                 self.hasID = False
 
 
@@ -29,5 +29,19 @@ class DPlayer:
         def hasID(self):
                 print(self.hasID)
                 return self.hasID
+        def isAlive(self):
+                if self.Hp < 0:
+                        return False
+                return True
+        def CalculateDamage(self):
+                x = int(self.Att * 0.1)
+                y = self.Att * 1
+                return random.randint(x,y)
+        def Whoami(self):
+                return "DPlayer"
+               
+
+
+               
                 
         

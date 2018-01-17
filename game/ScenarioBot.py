@@ -29,10 +29,17 @@ prefix = ['!','?','/','@']
 
 #Global Game Variables
 #---------------------------------
+#List of Enemies
 global EnemyList
 EnemyList = []
+global TempEnemyList
+TempEnemyList = []
+#List of Players
 global PlayerList
 PlayerList = []
+#Determines the TurnOrder...Is filled in once the game is started
+global TurnOrder
+TurnOrder = []
 #The name of the txt file that you want to be loaded
 global ScenarioName
 ScenarioName = ""
@@ -45,26 +52,72 @@ Timer = 60
 #Minimum amount of players needed to start the scenario. Can be Adjuseted in the text file Via MinPlayers <Amount of players> on a line
 global MinPlayers
 MinPlayers = 1
-
+#Max Hp for Characters Default is 100
+global MaxHp
+MaxHp = None
+#Determines if you can create a character
+global CanCreate
+CanCreate = 0
 #-----------------------------------
 
-def EnemyDamagemin(arg):
-       global EnemyList
-       damagemin = EnemyList[arg].Att * 1
-       return damagemin
+def EmptyPlayers():
+    global PlayerList
+    count = 0
+    for player in PlayerList:
+            if PlayerList[count].ID == 0:
+                PlayerList.pop(count)
+                count+=1
+                continue
+            count+=1
+    return PlayerList
 
-def EnemyDamagemax(arg):
-       global EnemyList
-       damagemax = EnemyList[arg].Att * 10
-       return damagemax
 
-       
+def getname():
+    global PlayerList
+    blank = ""
+    count = 0
+    for Player in PlayerList:
+        if count > 0:
+            if len(PlayerList) == 2:
+                blank = PlayerList[0].name
+                blank += " and "
+                blank += PlayerList[1].name
+                return blank
+            and_index = len(PlayerList) - 2
+            if count == and_index:
+                blank += ", "
+                blank += PlayerList[count].name
+                blank += " and "
+                count+=1
+                continue
+            last_index = len(PlayerList) - 1 
+            if count == last_index:
+                blank += PlayerList[count].name
+                return blank
+            blank += ", "
+            blank += PlayerList[count].name
+            count+=1
+            continue
+        blank = PlayerList[count].name
+        count+=1
+    return blank
+
        
 
        
 def Clear(): 
        global EnemyList
+       global TempEnemyList
        global PlayerList
+       global CanCreate
+       global MaxHp
+       global Timer
+       global TurnOrder
+       TempEnemyList.clear()
+       TurnOrder.clear()
+       Timer = 60
+       MaxHp = None
+       CanCreate = 0
        PlayerList.clear()
        EnemyList.clear()
        return PlayerList, EnemyList
@@ -79,27 +132,36 @@ def load():
                         global EnemyList
                         global Timer
                         global MinPlayers
+                        global MaxHp
+                        global CanCreate
                         arg = line.split(",")
+                        if 'CanCreate' in arg:
+                            CanCreate = int(arg[1])
+                            continue
+                        if 'MaxHp' in arg:
+                            MaxHp = int(arg[1])
+                            continue
                         if 'Player' in arg:
-                               newplayer = DPlayer.DPlayer(arg[1],arg[2],arg[3],arg[4]," ",False)
+                               newplayer = DPlayer.DPlayer(arg[1],int(arg[2]),int(arg[3]),int(arg[4]),0,False)
                                PlayerList.append(newplayer)
                                arg.clear()
                                continue
                         if 'Timer' in arg:
-                               Timer = arg[1]
+                               Timer = int(arg[1])
                                arg.clear()
                                continue
                         if 'MinPlayers' in arg:
-                               MinPlayers = arg[1]
+                               MinPlayers = int(arg[1])
                                arg.clear()
                                continue
                         if 'Enemy' in arg:
                              global EnemyList
-                             enemy1 = Enemy.Enemy(arg[1], arg[2], arg[3], arg[4])
+                             enemy1 = Enemy.Enemy(arg[1], int(arg[2]), int(arg[3]), int(arg[4]))
                              EnemyList.append(enemy1)
                              arg.clear()
                              continue
                         if '****' in arg:
+                                return CanCreate
                                 return EnemyList
                                 return Timer
                                 return PlayerList
@@ -115,7 +177,6 @@ bot = commands.Bot(command_prefix= prefix, description = description, pm_help= T
 async def on_ready():
         print('Logged in as ')
         print(bot.user.name)
-
 
 
 @bot.command(pass_context = True)
@@ -136,14 +197,12 @@ async def say(ctx ,*, say: str):
 async def mInfo(ctx, arg: int):
         global EnemyList
         await bot.delete_message(ctx.message)
-        x = EnemyDamagemin(arg)
-        y = EnemyDamagemax(arg)
         Enemy1 = EnemyList[arg]
         await bot.say("EnemyName: " + (EnemyList[arg].name))
         await bot.say("HP: " + str(EnemyList[arg].Hp))
-        await bot.say("Def: " + str(EnemyList[arg].Def))
+        await bot.say("Def: " + EnemyList[arg].Def)
         await bot.say("Att: " + str(EnemyList[arg].Att))
-        await bot.say("Enemy Can Do: " + str(Enemy1.CalculateDamage(x,y)) + " damage")
+        await bot.say("Enemy Can Do: " + str(Enemy1.CalculateDamage()) + " damage")
        
 
 #Create Functions and Commands Below vvv
@@ -211,34 +270,42 @@ async def gameSettings(ctx):
 
 
 @bot.command(pass_context = True)
-async def join(ctx):
+async def join(ctx, member : discord.Member, playernumber : int = -1):
        global PlayerList
        count = 0
+
+       if isPlaying == True:
+                       await bot.send_message(ctx.message.author,"Game is currently in session cant join")
+                       await bot.delete_message(ctx.message)
+                       return
+                    
+       if ctx.message.author.id != member.id:
+           await bot.say(ctx.message.author.mention + " You can't choose another member character!")
+           return
+
        for player in PlayerList:
-              if ctx.message.author.id == PlayerList[count].ID:
+              if ctx.message.author == PlayerList[count].ID:
                      await bot.say("Your already a player Bitch!")
                      await bot.delete_message(ctx.message)
                      return
               count+=1
-       playernumber = ctx.message.content.split(" ")
-       if len(playernumber) > 1:
-              newplayernumber = int(playernumber[1])
-              index = newplayernumber - 1
-              if PlayerList[index].hasID == True:
+       if playernumber > 0:
+            index = playernumber - 1
+            if PlayerList[index].hasID == True:
                      await bot.say(ctx.message.author.mention + " Somebody has chosen that player already. Choose an available player.")
                      return
-              PlayerList[index].ID = ctx.message.author.id
-              PlayerList[index].hasID = True
-              await bot.say(ctx.message.author.mention + " You Joined in as Player " + PlayerList[index].name)
-              await bot.delete_message(ctx.message)
-              return PlayerList
+            PlayerList[index].ID = member
+            PlayerList[index].hasID = True
+            await bot.say(ctx.message.author.mention + " You Joined in as Player " + PlayerList[index].name)
+            await bot.delete_message(ctx.message)
+            return PlayerList
        count = 0       
        for player in PlayerList:  
               if PlayerList[count].hasID == True:
                      count +=1
                      continue
               if PlayerList[count].hasID == False:
-                     PlayerList[count].ID = ctx.message.author.id
+                     PlayerList[count].ID = member
                      PlayerList[count].hasID = True
                      await bot.say(ctx.message.author.mention + " You Joined in as Player " + player.name)
                      await bot.delete_message(ctx.message)
@@ -249,40 +316,251 @@ async def join(ctx):
 @bot.command(pass_context = True)
 async def create(ctx,*,name: str):
        global PlayerList
-       newplayer1 = DPlayer.DPlayer(name,100,random.randint(75,150),random.randint(75,150),"",False)
-       PlayerList.append(newplayer1)
-       return PlayerList
+       global CanCreate
+       if isPlaying == True:
+                       await bot.send_message(ctx.message.author,"Game is currently in session cant create a character")
+                       await bot.delete_message(ctx.message)
+                       return
+                    
+       if CanCreate == 1:
+           await bot.say(ctx.message.author.mention + " you can't create Characters for this Scenario")
+           return
+        
+       if CanCreate == True:
+           if MaxHp != None:
+               newplayer1 = DPlayer.DPlayer(name,MaxHp,random.randint(75,150),random.randint(75,150),0,False)
+               PlayerList.append(newplayer1)
+               return PlayerList
+           if MaxHp == None:
+               newplayer1 = DPlayer.DPlayer(name,100,random.randint(75,150),random.randint(75,150),0,False)
+               PlayerList.append(newplayer1)
+               return PlayerList
        
               
 @bot.command(pass_context = True)
 async def Play(ctx): 
        global isPlaying
        global MinPlayers
-       playercount = int(len(Player))
+       global ScenarioName
+       playercount = int(len(PlayerList))
        if ScenarioName == "":
               await bot.say("There is no Scenario Selected or Loaded. Select a Scenario with the !ts <ScenarioName> command")
               return 
-       if playercount < 10:
+       if playercount < 0:
               await bot.say("Not Enough Players")
               return
        isPlaying == True
+                
+               
        
 @bot.command(pass_context = True)
 async def unjoin(ctx):
        global PlayerList
+       if isPlaying == True:
+                       await bot.send_message(ctx.message.author,"Game is currently in session cant unjoin from game sorry its not implemented yet")
+                       await bot.delete_message(ctx.message)
+                       return 
        count = 0
        for player in PlayerList:
-              if ctx.message.author.id == PlayerList[count].ID:
-                     PlayerList[count].ID = ""
+              if ctx.message.author == PlayerList[count].ID:
+                     PlayerList[count].ID = ''
                      PlayerList[count].hasID = False
                      await bot.say(ctx.message.author.mention + " You are no longer " + PlayerList[count].name )
                      await bot.delete_message(ctx.message)
                      return
               count+=1
        await bot.say(ctx.message.author.mention + " You are not in the game")
+
+
+keywords = ['<Players>','<Battle>']
+@bot.command(pass_context = True)
+async def start(ctx):
+       global PlayerList
+       global EnemyList
+       global TurnOrder
+       global Timer
+       global isPlaying
+       global MinPlayers
+       global ScenarioName
+       global isPlaying
+       global TempEnemyList
+       x = '<Start>'
+       z = '<End>'
+
        
-                
+       if ScenarioName == "":
+              await bot.say("There is no Scenario Selected or Loaded. Select a Scenario with the !ts <ScenarioName> command")
+              return
+            
+       EmptyPlayers()     
+       if len(PlayerList) < MinPlayers:
+              await bot.say("Not Enough Players")
+              return
+       isPlaying = True 
+       f = open(ScenarioName, "r")
+       story = f.readlines()
+
+
+       
+       for n,para in enumerate(story, 0):
+              if x in para:
+                     place = n+1
+              if z in para:
+                     place_end = n
+                     for y in range(place,place_end):
+                         keywordUsed = False
+
+
+
+                         
+                         #Reads a Line with The <Players> Keyword********************************************************
+                         if keywords[0] in story[y]:
+                                   names = getname()
+                                   story[y] = story[y].replace('<Players>', names)
+
+
+
+
+                         #Reads a Line with <Battle> keyword *****************************************         
+                         if keywords[1] in story[y]:
+                            story[y] = story[y].replace(keywords[1],"")
+                            await bot.say(story[y])
+                            arg = story[y].split(" ")
+                            arg2 = len(arg) - 1
+                            try:
+                                numofMonsters  = int(arg[arg2])
+                            except:
+                                numofMonsters = 100
+                            keywordUsed = True
+                            for player in PlayerList:
+                                TurnOrder.append(player)
+                            count = 0
+                            for Enemy in EnemyList:
+                                if count == numofMonsters:
+                                    break
+                                TurnOrder.append(Enemy)
+                                TempEnemyList.append(Enemy)
+                                count+=1
+                            random.shuffle(TurnOrder)
+                            count = 0
+                            battleOn = True
+
+
+                            
+                       #Start Combat code begins here************************************************     
+                            while battleOn == True:
+                                if count >= len(TurnOrder):
+                                    count = 0
+                                if len(TempEnemyList) == 0:
+                                    battleOn = False
+                                    continue
+                                if len(PlayerList) == 0:
+                                    await bot.say("Your party has been decimated")
+                                    return
+                                ResetIndex = len(TurnOrder)-1
+
+
+
+                                #AI for the enemy on his Turn************************************************
+                                if TurnOrder[count].Whoami() == "Enemy":
+
+                                    #Checks if The Enemy is Alive
+                                    if TurnOrder[count].isAlive() == False:
+                                        await bot.say(TurnOrder[count].name + " is Dead")
+                                        TurnOrder.pop(count)
+                                        countx = 0
+                                        for enemy in EnemyList:
+                                            if EnemyList[countx].isAlive() == False:
+                                                EnemyList.pop(countx)
+                                            countx += 1
+                                        countx = 0
+                                        for enemy in TempEnemyList:
+                                            if TempEnemyList[countx].isAlive() == False:
+                                                TempEnemyList.pop(countx)
+                                            countx += 1    
+                                        if count == ResetIndex:
+                                            count = 0
+                                            continue
+                                        count+=1
+                                        continue
+                                    
+                                    #Checks if theyre only one player in the list
+                                    lastindex = len(PlayerList) - 1
+                                    if lastindex == -1:
+                                        damage = float(TurnOrder[count].CalculateDamage()) - (PlayerList[0].Def * 0.1)
+                                        await bot.say(TurnOrder[count].name + " did " + str(damage) +" damage to " + PlayerList[0].name + " with a massive blow!!! ")
+                                        if count == ResetIndex:
+                                            count = 0
+                                            continue
+                                        count+=1
+                                        continue
+                                    
+                                    #Attack an random Player
+                                    Targetindex = random.randint(0,lastindex)
+                                    damage = float(TurnOrder[count].CalculateDamage()) - (PlayerList[Targetindex].Def * 0.1)
+                                    PlayerList[Targetindex].Hp = int(PlayerList[Targetindex].Hp - damage)    
+                                    await bot.say(TurnOrder[count].name + " did " + str(damage) +" damage to " + PlayerList[Targetindex].name + " with a massive blow!!! ")
+                                    if count == ResetIndex:
+                                        count = 0
+                                        continue
+                                    count+=1
+                                    continue
+
+
+
+                                
+                               #Player Controls Begin here***************************************************
+                                if TurnOrder[count].Whoami() == "DPlayer":
+
+                                    #Checks if a player is alive
+                                    if TurnOrder[count].isAlive() == False:
+                                        await bot.say(TurnOrder[count].name + " is Dead")
+                                        TurnOrder.pop(count)
+                                        countx = 0
+                                        for player in PlayerList:
+                                            if PlayerList[countx].isAlive() == False:
+                                                PlayerList.pop(countx)
+                                            countx += 1
+                                        if count == ResetIndex:
+                                            count = 0
+                                            continue
+                                        count+=1
+                                        continue
+
+                                    #Player Controls
+                                    await bot.say(TurnOrder[count].ID.mention + " Its " + TurnOrder[count].name + " turn!!!")
+
+                                    msg = await bot.wait_for_message(timeout = 60, author = TurnOrder[count].ID)
+
+
+
+                                    if msg.content == "attack":
+
+                                         Targetindex = random.randint(0,len(TempEnemyList)-1)
+                                         damage = float(TurnOrder[count].CalculateDamage()) - (TempEnemyList[Targetindex].Def * 0.1)
+                                         TempEnemyList[Targetindex].Hp = int(TempEnemyList[Targetindex].Hp - damage)
+                                         await bot.say(TurnOrder[count].name + " did " + str(damage) +" damage to " + TempEnemyList[Targetindex].name + " with a massive blow!!! ")
+                                         if count == ResetIndex:
+                                            count = 0
+                                            continue
+                                         count += 1
+                                         continue
+                                        
+                                    if msg.content == "end":
+                                         await bot.say("you ended the game")   
+                                         return    
+                                    continue
+
+
+
+
+                         #Prints Line with no Keywords in it***********************************************
+                         if keywordUsed == False:
+                             await bot.say(story[y])
+                             
+       isPlaying = False
+       
 #loads the Token
-f = open("assets/token.txt","r")
+f = open("assets/token.txt" ,"r")
 token = f.readline()
 bot.run(token)
