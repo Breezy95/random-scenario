@@ -1,0 +1,28 @@
+Player, Ruby Rush, 700, 100, 700
+Player, Ven, 800, 200, 800
+Player, Odennus, 1000, 500,200
+Player, Alcine, 700, 600, 400
+Player, Circafogus, 1300 , 1200, 100
+CanCreate, 1
+MinPlayers, 2
+Timer, 70
+Enemy, KillerDragoon, 1000, 300, 200
+Enemy, BeserkerDragoon, 1000, 300, 200
+Enemy, King BOLLO, 1500, 500, 300
+****
+<Start>
+WELCOME TO THE BATTLE ARENA <Players>!!
+Before you are many fierce competitors. Take em all out if you want to return Home.
+KillerDragoon: What kind of sick shit is this, Bert?
+BerskerDragoon: I dont Know and I dont care lets do what were good at...KILLLING
+<Players> yall ready??? for THIS AMAZING BATTLEEEE!!!! <Battle> 2
+<Players> WHOAH YALL that was some crazy action but theyre one guy left....
+King BOLLO: yes it is i Friends Bollo.
+King BOLLO: I reign over this land it is who summoned you here
+King BOLLO: I an the ultimate random created character.....
+King BOLLO: Now show me YOUR MIGHT TEXT HEROES.......<Battle>
+King BOLLO: ughh.... darn.... yall are strong.... too OP for me....
+King BOLLO FADED AWAY INTO NONEXISTANTS!!! WHAT AN EXPLOSIVE BATTLE
+*TWERP*
+<Player> were teleported Home...
+<End>

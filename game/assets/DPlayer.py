@@ -5,7 +5,7 @@ from discord.ext import commands
 
 
 class DPlayer:
-        def __init__(self,name, Hp : int , Def : int, Att : int,ID ,hasID ):
+        def __init__(self,name, Hp : int , Def : int, Att : int,ID,hasID ):
                 self.name = name
                 self.Hp = Hp
                 self.Def = Def
