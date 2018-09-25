@@ -1,0 +1,15 @@
+<Start>
+Hello this is the First Test of the Main Game!!
+<Players> walked down the street of a well lit sub urban town
+... When suddenly  a group of bandits came out of a shadow of a lanpost
+Bandit 1: Give us your Money punks..
+A raging battle insued.. <Battle> 
+<Players> defeated the thugs and banged mad Bitches
+<End>
+
+MaxHp, 1000
+Enemy, EvilMan, 100, 10, 100
+Enemy, Bandit, 150, 20, 100
+Timer, 80
+MinPlayers, 1
+****

@@ -1,0 +1,29 @@
+CanCreate, 1
+MinPlayers, 2
+Timer, 70
+Player, Heath Panac, 500, 120, 150
+Player, Alcine, 700, 250, 200
+Player, Honce, 1200, 150, 100
+Player, Odenus, 500, 300, 100
+Enemy, Hunky Young Man, 1000, 500, 20
+****
+<Start>
+After Heath and Alcine battle withe booty pirates a mysterious figure came out the void
+after they left.
+Mysterious Figure: Hmmm. Nicheeeee
+Meanwhile... in a different world.
+A young bard Honce was singing tunes to a nice busty lady.
+Busty Lady: Honcey-Poo I heard your Penis is Small.
+Honce: Who told You Tha---
+Before he could finish his statement he was sucked into a wormhole.
+In another world....
+Young Odenus was walking to get some bread where he was sucked into a wormhole
+Heath and Alcine thought they were returning home but they ended up in the same wormhole
+<Players> land on a flat ground standing before them is a Hunky Young Man
+Hunky Young Man: Hello boyz.... Wanna wash my back
+Honce: Nope Nope NOPE 
+A raging battle is about to ensue.... <Battle>
+Honce: Who da hell are you gu-
+Wormholes took each person to diffrent dimensions
+The End?
+<End>
